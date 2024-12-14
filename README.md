@@ -1,47 +1,47 @@
 # Arduino HID Emulator
 
-`arduino-hid-emulator` — это Python-библиотека, предназначенная для управления HID-устройствами (клавиатурой и мышью), эмулированными на базе Arduino. Библиотека позволяет отправлять команды для управления движением мыши, нажатиями клавиш и кнопок мыши, а также выполнять калибровку для точного перемещения.
+`arduino-hid-emulator` is a Python library designed to control HID devices (keyboard and mouse) emulated using Arduino. The library allows you to send commands to control mouse movements, key presses, and mouse button actions, as well as perform calibration for precise positioning.
 
-## Возможности
+## Features
 
-- **Управление мышью**:
-  - Прямолинейное перемещение на заданное смещение.
-  - Плавное движение мыши с использованием кривой Безье.
-  - Нажатие, отпускание и клик кнопок мыши.
+- **Mouse Control**:
+  - Direct movement by specified offset.
+  - Smooth mouse movement using a Bézier curve.
+  - Press, release, and click mouse buttons.
 
-- **Управление клавиатурой**:
-  - Нажатие и отпускание клавиш.
-  - Симуляция комбинаций клавиш (например, `Ctrl + C`).
+- **Keyboard Control**:
+  - Press and release keys.
+  - Simulate key combinations (e.g., `Ctrl + C`).
 
-- **Калибровка**:
-  - Автоматическая калибровка коэффициентов перемещения мыши для обеспечения точного позиционирования.
+- **Calibration**:
+  - Automatic calibration of mouse movement factors for precise positioning.
 
-- **Гибкость**:
-  - Возможность настройки минимальной и максимальной длительности перемещения мыши.
-  - Лёгкое подключение и управление через последовательный порт.
+- **Flexibility**:
+  - Adjustable minimum and maximum duration for mouse movements.
+  - Easy connection and control via serial port.
 
-## Установка
+## Installation
 
-Убедитесь, что Python 3.x установлен в вашей системе, а также установите библиотеку с помощью `pip`:
+Ensure Python 3.x is installed on your system, then install the library using `pip`:
 
 ```bash
 pip install arduino-hid-emulator
 ```
 
-## Требования
+## Requirements
 
-- Arduino с поддержкой HID (например, Arduino Pro Micro или Leonardo).
-- Загрузка программы для Arduino (`hid_emulator.ino`), которая находится в папке `arduino/hid_emulator`.
-- Библиотеки Python:
+- Arduino with HID support (e.g., Arduino Pro Micro or Leonardo).
+- Upload the Arduino sketch (`hid_emulator.ino`) located in the `arduino/hid_emulator` directory.
+- Python libraries:
   - `pyserial`
   - `pyautogui`
 
-## Быстрый старт
+## Quick Start
 
-1. **Подключите Arduino**:
-   Загрузите скетч `hid_emulator.ino` на вашу плату Arduino, подключите её к компьютеру через USB.
+1. **Connect Arduino**:
+   Upload the `hid_emulator.ino` sketch to your Arduino board and connect it to your computer via USB.
 
-2. **Создайте объект подключения**:
+2. **Create a connection object**:
    ```python
    from arduino_hid_emulator.arduino import ArduinoConnection
    from arduino_hid_emulator.mouse import MouseController
@@ -50,44 +50,44 @@ pip install arduino-hid-emulator
    mouse = MouseController(arduino)
    ```
 
-3. **Пример использования**:
+3. **Usage example**:
    ```python
-   # Перемещение мыши на заданное смещение
+   # Move the mouse by a specified offset
    mouse.move_direct(100, 100)
 
-   # Плавное перемещение мыши к указанной точке
+   # Smoothly move the mouse to a specified point
    mouse.mouse_move(500, 500, duration_min=1000, duration_max=2000)
 
-   # Клик левой кнопкой мыши
+   # Click the left mouse button
    mouse.click("left")
    ```
 
-4. **Закройте соединение**:
+4. **Close the connection**:
    ```python
    arduino.close()
    ```
 
-## Калибровка
+## Calibration
 
-Для точного перемещения рекомендуется выполнить калибровку:
+For precise movement, it is recommended to perform calibration:
 ```python
 mouse.calibrate()
 ```
-Калибровка выполняется автоматически, настраивая коэффициенты перемещения мыши.
+Calibration is performed automatically, adjusting mouse movement factors.
 
-## Структура проекта
+## Project Structure
 
-- `arduino_hid_emulator/` — исходный код библиотеки.
-- `arduino/hid_emulator/` — скетч для загрузки в Arduino.
-- `examples/` — примеры использования.
+- `arduino_hid_emulator/` — source code of the library.
+- `arduino/hid_emulator/` — sketch for uploading to Arduino.
+- `examples/` — usage examples.
 
-## Лицензия
+## License
 
-Проект распространяется под лицензией [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). Вы можете свободно использовать, модифицировать и распространять библиотеку в соответствии с её условиями.
+The project is distributed under the [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html) license. You are free to use, modify, and distribute the library under its terms.
 
-## Вклад в проект
+## Contributing
 
-Если вы хотите предложить улучшения, сообщить об ошибках или внести свой вклад, создайте pull request или откройте issue в [репозитории проекта](https://github.com/mvandrew/arduino-hid-emulator).
+If you want to suggest improvements, report issues, or contribute, create a pull request or open an issue in the [project repository](https://github.com/mvandrew/arduino-hid-emulator).
 
 ---
-**Примечание**: Убедитесь, что скетч для Arduino загружен и устройство поддерживает HID.
+**Note**: Make sure the Arduino sketch is uploaded and the device supports HID.
