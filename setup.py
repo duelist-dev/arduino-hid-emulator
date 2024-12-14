@@ -1,23 +1,28 @@
 from setuptools import setup, find_packages
+import pathlib
+
+# Путь к README-RU.md
+here = pathlib.Path(__file__).parent.resolve()
+readme_path = here / "README-RU.md"
+
+# Чтение описания с указанием кодировки
+with open(readme_path, encoding="utf-8") as f:
+    long_description = f.read()
 
 setup(
     name="arduino-hid-emulator",
-    version="0.1.0",
+    version="0.2.0",
+    description="A Python library for controlling Arduino HID devices",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Andrey Mishchenko",
     author_email="msav@msav.ru",
-    description="Python module for controlling an Arduino-based HID emulator for keyboard and mouse.",
-    long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",
     url="https://github.com/mvandrew/arduino-hid-emulator",
-    packages=find_packages(exclude=["arduino", "arduino.*"]),
-    package_dir={"": "."},  # Указывает корневую директорию проекта
+    packages=find_packages(),
     install_requires=[
-        "pyserial>=3.5",
-        "pyautogui>=0.9.53",
+        "pyserial",
+        "pyautogui",
     ],
-    extras_require={
-        "dev": ["pytest>=7.0", "mock>=5.0"],
-    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
