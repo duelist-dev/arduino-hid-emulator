@@ -20,6 +20,45 @@ class MouseController:
         adjusted_y = round(y * self.factor_y)
         return self.arduino.send_command(f"mouse_move_direct {adjusted_x},{adjusted_y}")
 
+    def smooth_move(self, target_x, target_y, duration=1.0, steps=100):
+        """
+        Плавно перемещает курсор на заданные координаты за указанное время.
+
+        :param target_x: Смещение по X.
+        :param target_y: Смещение по Y.
+        :param duration: Время перемещения (в секундах).
+        :param steps: Количество шагов.
+        """
+        # Вычисляем шаг времени
+        step_delay = duration / steps
+
+        # Начальное положение
+        current_x, current_y = 0, 0
+
+        # Вычисляем инкременты
+        increment_x = target_x / steps
+        increment_y = target_y / steps
+
+        # Плавное перемещение
+        for i in range(steps):
+            move_x = round(increment_x * (i + 1)) - current_x
+            move_y = round(increment_y * (i + 1)) - current_y
+
+            self.move_direct(move_x, move_y)
+
+            # Обновляем текущее положение
+            current_x += move_x
+            current_y += move_y
+
+            # Задержка между шагами
+            time.sleep(step_delay)
+
+        # Финальная коррекция, чтобы гарантировать точность
+        final_x = target_x - current_x
+        final_y = target_y - current_y
+        if final_x != 0 or final_y != 0:
+            self.move_direct(final_x, final_y)
+
     def click(self, button="left"):
         """
         Нажимает и отпускает указанную кнопку мыши.
