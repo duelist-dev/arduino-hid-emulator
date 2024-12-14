@@ -52,7 +52,7 @@ pip install arduino-hid-emulator
 
 3. **Usage example**:
    ```python
-   # Move the mouse by a specified offset
+   # Move the mouse to a specified point
    mouse.move_direct(100, 100)
 
    # Smoothly move the mouse to a specified point
