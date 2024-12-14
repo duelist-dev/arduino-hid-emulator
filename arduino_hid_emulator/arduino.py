@@ -28,13 +28,17 @@ class ArduinoConnection:
 
     def send_command(self, command):
         """
-        Отправляет команду на Arduino и возвращает ответ.
+        Отправляет команду на Arduino и возвращает результат выполнения.
+
+        :param command: Команда для отправки.
+        :return: True, если команда успешно выполнена, иначе False.
         """
         if not self.connection.is_open:
             raise RuntimeError("Подключение к Arduino не активно.")
         self.connection.write((command + "\n").encode())
         time.sleep(0.05)  # Небольшая задержка для обработки команды Arduino
-        return self.connection.readline().decode().strip()
+        response = self.connection.readline().decode().strip()
+        return response == "True"
 
     def close(self):
         """
