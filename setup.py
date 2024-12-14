@@ -11,7 +11,7 @@ with open(readme_path, encoding="utf-8") as f:
 
 setup(
     name="arduino-hid-emulator",
-    version="0.3.0",
+    version="0.4.0",
     description="A Python library for controlling Arduino HID devices",
     long_description=long_description,
     long_description_content_type="text/markdown",
