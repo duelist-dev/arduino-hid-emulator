@@ -3,7 +3,7 @@ import pathlib
 
 # Путь к README-RU.md
 here = pathlib.Path(__file__).parent.resolve()
-readme_path = here / "README-RU.md"
+readme_path = here / "README.md"
 
 # Чтение описания с указанием кодировки
 with open(readme_path, encoding="utf-8") as f:
@@ -11,7 +11,7 @@ with open(readme_path, encoding="utf-8") as f:
 
 setup(
     name="arduino-hid-emulator",
-    version="0.2.0",
+    version="0.3.0",
     description="A Python library for controlling Arduino HID devices",
     long_description=long_description,
     long_description_content_type="text/markdown",
