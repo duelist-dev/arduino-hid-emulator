@@ -1,0 +1,2 @@
+setuptools~=75.6.0
+serial~=0.0.97
