@@ -112,64 +112,82 @@ bool handleKeyCombo(String combo) {
 
 // Плавное движение мыши по кривой Безье
 bool handleMouseMove(String params) {
-    // Разделяем параметры команды
-    int sep1 = params.indexOf(',');
-    if (sep1 == -1) return false;
+    // Определяем позиции разделителей в строке параметров
+    int paramX = params.indexOf(',');
+    if (paramX == -1) return false;
 
-    int sep2 = params.indexOf(',', sep1 + 1);
-    if (sep2 == -1) return false;
+    int paramY = params.indexOf(',', paramX + 1);
+    if (paramY == -1) return false;
 
-    int sep3 = params.indexOf(',', sep2 + 1);
-    if (sep3 == -1) return false;
+    int paramFactorX = params.indexOf(',', paramY + 1);
+    if (paramFactorX == -1) return false;
 
-    // Парсим координаты и коэффициенты
-    int targetX = params.substring(0, sep1).toInt();
-    int targetY = params.substring(sep1 + 1, sep2).toInt();
-    float factorX = params.substring(sep2 + 1, sep3).toFloat();
-    float factorY = params.substring(sep3 + 1).toFloat();
+    int paramFactorY = params.indexOf(',', paramFactorX + 1);
+    int paramDurationMin = params.indexOf(',', paramFactorY + 1);
+    int paramDurationMax = params.indexOf(',', paramDurationMin + 1);
+
+    // Извлекаем параметры из строки
+    int targetX = params.substring(0, paramX).toInt(); // Смещение по X
+    int targetY = params.substring(paramX + 1, paramY).toInt(); // Смещение по Y
+    float factorX = params.substring(paramY + 1, paramFactorX).toFloat(); // Коэффициент для X
+    float factorY = params.substring(paramFactorX + 1, paramFactorY == -1 ? params.length() : paramFactorY).toFloat(); // Коэффициент для Y
+
+    // Устанавливаем диапазон длительности перемещения
+    unsigned long durationMin = MOUSE_MOVE_DURATION_MIN; // Минимальная длительность
+    unsigned long durationMax = MOUSE_MOVE_DURATION_MAX; // Максимальная длительность
+
+    // Если указан только один параметр для длительности, используем фиксированное значение
+    if (paramFactorY != -1 && paramDurationMin == -1) {
+        durationMin = durationMax = params.substring(paramFactorY + 1).toInt();
+    } 
+    // Если заданы два параметра для диапазона длительности
+    else if (paramFactorY != -1 && paramDurationMin != -1) {
+        durationMin = params.substring(paramFactorY + 1, paramDurationMin).toInt();
+        durationMax = paramDurationMax != -1 ? params.substring(paramDurationMin + 1, paramDurationMax).toInt()
+                                             : params.substring(paramDurationMin + 1).toInt();
+    }
+
+    // Вычисляем длительность перемещения
+    unsigned long duration = (durationMin == durationMax) ? durationMin : random(durationMin, durationMax);
 
     // Применяем коэффициенты к целевым координатам
     targetX = round(targetX * factorX);
     targetY = round(targetY * factorY);
 
-    // Проверка: если конечная цель равна (0,0), предотвращаем движение
+    // Если конечная цель (0,0), отменяем движение
     if (targetX == 0 && targetY == 0) {
         return false;
     }
 
-    // Длительность движения
-    unsigned long duration = random(MOUSE_MOVE_DURATION_MIN, MOUSE_MOVE_DURATION_MAX);
-    unsigned long startTime = millis();
+    int steps = 100; // Количество шагов для плавности движения
 
-    int steps = 100; // Количество шагов для плавности
-
-    // Текущие координаты
+    // Начальные координаты
     int currentX = 0, currentY = 0;
 
     // Вычисляем параметры кривой Безье
-    float dx = targetX - currentX;
-    float dy = targetY - currentY;
-    float distance = sqrt(dx * dx + dy * dy);
-    float offset = distance * 0.2;
+    float deltaX = targetX - currentX;
+    float deltaY = targetY - currentY;
+    float distance = sqrt(deltaX * deltaX + deltaY * deltaY);
+    float bezierOffset = distance * 0.2; // Смещение для контрольных точек
 
-    float normX = -dy / distance;
-    float normY = dx / distance;
+    float normalX = -deltaY / distance; // Нормализованное направление по X
+    float normalY = deltaX / distance;  // Нормализованное направление по Y
 
-    int controlX1 = targetX / 3 + normX * offset;
-    int controlY1 = targetY / 3 + normY * offset;
-    int controlX2 = 2 * targetX / 3 - normX * offset;
-    int controlY2 = 2 * targetY / 3 - normY * offset;
+    int controlPoint1X = targetX / 3 + normalX * bezierOffset;
+    int controlPoint1Y = targetY / 3 + normalY * bezierOffset;
+    int controlPoint2X = 2 * targetX / 3 - normalX * bezierOffset;
+    int controlPoint2Y = 2 * targetY / 3 - normalY * bezierOffset;
 
-    // Движение по Безье
+    // Плавное движение по кривой Безье
     for (int i = 1; i <= steps; i++) {
         float t = (float)i / steps;
         int bezierX = round((1 - t) * (1 - t) * (1 - t) * 0 +
-                            3 * (1 - t) * (1 - t) * t * controlX1 +
-                            3 * (1 - t) * t * t * controlX2 +
+                            3 * (1 - t) * (1 - t) * t * controlPoint1X +
+                            3 * (1 - t) * t * t * controlPoint2X +
                             t * t * t * targetX);
         int bezierY = round((1 - t) * (1 - t) * (1 - t) * 0 +
-                            3 * (1 - t) * (1 - t) * t * controlY1 +
-                            3 * (1 - t) * t * t * controlY2 +
+                            3 * (1 - t) * (1 - t) * t * controlPoint1Y +
+                            3 * (1 - t) * t * t * controlPoint2Y +
                             t * t * t * targetY);
 
         int moveX = bezierX - currentX;
@@ -191,16 +209,17 @@ bool handleMouseMove(String params) {
         delay(duration / steps);
     }
 
-    // Финальная коррекция
-    int finalX = targetX - currentX;
-    int finalY = targetY - currentY;
+    // Финальная коррекция для точного достижения цели
+    int remainingX = targetX - currentX;
+    int remainingY = targetY - currentY;
     int correctionSteps = 20;
+
     for (int i = 0; i < correctionSteps; i++) {
-        int stepX = finalX / correctionSteps;
-        int stepY = finalY / correctionSteps;
+        int stepX = remainingX / correctionSteps;
+        int stepY = remainingY / correctionSteps;
         Mouse.move(stepX, stepY);
-        finalX -= stepX;
-        finalY -= stepY;
+        remainingX -= stepX;
+        remainingY -= stepY;
         delay(200 / correctionSteps);
     }
 

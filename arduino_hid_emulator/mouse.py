@@ -20,45 +20,6 @@ class MouseController:
         adjusted_y = round(y * self.factor_y)
         return self.arduino.send_command(f"mouse_move_direct {adjusted_x},{adjusted_y}")
 
-    def smooth_move(self, target_x, target_y, duration=1.0, steps=100):
-        """
-        Плавно перемещает курсор на заданные координаты за указанное время.
-
-        :param target_x: Смещение по X.
-        :param target_y: Смещение по Y.
-        :param duration: Время перемещения (в секундах).
-        :param steps: Количество шагов.
-        """
-        # Вычисляем шаг времени
-        step_delay = duration / steps
-
-        # Начальное положение
-        current_x, current_y = 0, 0
-
-        # Вычисляем инкременты
-        increment_x = target_x / steps
-        increment_y = target_y / steps
-
-        # Плавное перемещение
-        for i in range(steps):
-            move_x = round(increment_x * (i + 1)) - current_x
-            move_y = round(increment_y * (i + 1)) - current_y
-
-            self.move_direct(move_x, move_y)
-
-            # Обновляем текущее положение
-            current_x += move_x
-            current_y += move_y
-
-            # Задержка между шагами
-            time.sleep(step_delay)
-
-        # Финальная коррекция, чтобы гарантировать точность
-        final_x = target_x - current_x
-        final_y = target_y - current_y
-        if final_x != 0 or final_y != 0:
-            self.move_direct(final_x, final_y)
-
     def click(self, button="left"):
         """
         Нажимает и отпускает указанную кнопку мыши.
@@ -132,3 +93,49 @@ class MouseController:
                 print(f"Текущая ошибка: error_x = {error_x}, error_y = {error_y}")
 
         print(f"Финальные коэффициенты: factor_x = {self.factor_x}, factor_y = {self.factor_y}")
+
+    def mouse_move(self, x, y, duration_min=500, duration_max=1500):
+        """
+        Плавное перемещение мыши на заданные координаты с указанной длительностью.
+
+        :param x: Конечная координата по оси X.
+        :param y: Конечная координата по оси Y.
+        :param duration_min: Минимальная длительность перемещения в миллисекундах.
+        :param duration_max: Максимальная длительность перемещения в миллисекундах.
+        """
+        if duration_min < 0 or duration_max < 0:
+            raise ValueError("Длительность перемещения должна быть неотрицательной.")
+
+        if duration_min > duration_max:
+            raise ValueError("Минимальная длительность не может превышать максимальную.")
+
+        # Получаем текущие координаты курсора
+        current_x, current_y = pyautogui.position()
+
+        # Вычисляем смещение
+        delta_x = x - current_x
+        delta_y = y - current_y
+
+        while abs(delta_x) > 1 or abs(delta_y) > 1:
+            # Формируем команду для Arduino
+            command = f"mouse_move {delta_x},{delta_y},{self.factor_x},{self.factor_y},{duration_min},{duration_max}"
+
+            # Отправляем команду на устройство
+            success = self.arduino.send_command(command)
+
+            # Если команда не выполнена, прерываем выполнение
+            if not success:
+                raise RuntimeError(f"Ошибка выполнения команды: {command}")
+
+            # Проверяем новое положение курсора
+            time.sleep(0.1)  # Небольшая пауза для обновления положения
+            current_x, current_y = pyautogui.position()
+
+            # Вычисляем новое смещение
+            delta_x = x - current_x
+            delta_y = y - current_y
+
+            # Уменьшаем длительность для корректировок
+            duration_min, duration_max = 50, 100
+
+        print(f"Курсор успешно перемещён в точку ({x}, {y}).")
