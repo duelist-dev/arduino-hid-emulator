@@ -12,13 +12,40 @@ class MouseController:
         self.factor_x = default_factor_x
         self.factor_y = default_factor_y
 
-    def move_direct(self, x, y):
+    def mouse_direct(self, x, y):
         """
-        Перемещает мышь на заданное смещение с учётом коэффициентов.
+        Прямолинейное перемещение мыши на заданные координаты.
+
+        :param x: Конечная координата по оси X.
+        :param y: Конечная координата по оси Y.
         """
-        adjusted_x = round(x * self.factor_x)
-        adjusted_y = round(y * self.factor_y)
-        return self.arduino.send_command(f"mouse_move_direct {adjusted_x},{adjusted_y}")
+        # Получаем текущие координаты курсора
+        current_x, current_y = pyautogui.position()
+
+        # Вычисляем смещение
+        delta_x = x - current_x
+        delta_y = y - current_y
+
+        while abs(delta_x) > 1 or abs(delta_y) > 1:
+            # Формируем команду для Arduino
+            command = f"mouse_move_direct {delta_x},{delta_y}"
+
+            # Отправляем команду на устройство
+            success = self.arduino.send_command(command)
+
+            # Если команда не выполнена, прерываем выполнение
+            if not success:
+                raise RuntimeError(f"Ошибка выполнения команды: {command}")
+
+            # Проверяем новое положение курсора
+            time.sleep(0.1)  # Небольшая пауза для обновления положения
+            current_x, current_y = pyautogui.position()
+
+            # Вычисляем новое смещение
+            delta_x = x - current_x
+            delta_y = y - current_y
+
+        print(f"Курсор успешно перемещён в точку ({x}, {y}).")
 
     def click(self, button="left"):
         """
